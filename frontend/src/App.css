@@ -1,6 +1,26 @@
-/* Phase 1 — App placeholder styles */
-/* Full styles will be added in Phase 7 */
+/* App-specific custom global styles */
+@keyframes spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
 
-.space-y-4 > * + * {
-  margin-top: 1rem;
+.animate-reverse-spin {
+  animation: spin-reverse 1s linear infinite;
+}
+
+/* Base Fade In */
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
