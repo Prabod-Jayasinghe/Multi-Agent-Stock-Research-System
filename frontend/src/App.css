@@ -1,0 +1,6 @@
+/* Phase 1 — App placeholder styles */
+/* Full styles will be added in Phase 7 */
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
