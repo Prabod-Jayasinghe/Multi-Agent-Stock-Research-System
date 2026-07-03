@@ -11,7 +11,7 @@ from unittest.mock import patch, AsyncMock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi.testclient import TestClient
-from main import app, _report_store
+from main import app, _memory_store
 from core.models import (
     Confidence, FinancialsAgentOutput, NewsAgentOutput,
     ResearchReport, Sentiment, SynthesisAgentOutput, Verdict,
@@ -55,9 +55,9 @@ def _make_full_report(ticker="AAPL") -> ResearchReport:
 @pytest.fixture(autouse=True)
 def clear_report_store():
     """Reset in-memory report store before each test."""
-    _report_store.clear()
+    _memory_store.clear()
     yield
-    _report_store.clear()
+    _memory_store.clear()
 
 
 # ─── GET / ────────────────────────────────────────────────────────────────────
@@ -97,8 +97,8 @@ def test_research_stores_report_in_memory():
     with patch("main.run_research_pipeline", new_callable=AsyncMock, return_value=mock_report):
         client.post("/api/research", json={"ticker": "TSLA"})
 
-    assert len(_report_store) == 1
-    assert _report_store[0]["ticker"] == "TSLA"
+    assert len(_memory_store) == 1
+    assert _memory_store[0]["ticker"] == "TSLA"
 
 def test_research_lowercase_ticker_accepted():
     mock_report = _make_full_report("AAPL")

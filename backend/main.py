@@ -1,12 +1,13 @@
 """
 main.py
-FastAPI application — fully wired from Phase 4 onward.
+FastAPI application — Phase 5: Database Integration
 
 Endpoints:
   GET  /             — service info
-  GET  /health       — health check
-  POST /api/research — run full 3-agent research pipeline
-  GET  /api/history  — retrieve past reports (DB stub until Phase 6)
+  GET  /health       — health check (+ DB connectivity status)
+  POST /api/research — run full 3-agent research pipeline + save to DB
+  GET  /api/history  — retrieve past reports from Supabase (paginated)
+  GET  /api/report/{id} — single report lookup
   GET  /api/cse      — list CSE stocks
   GET  /api/cse/{ticker} — get single CSE stock
 """
@@ -29,6 +30,13 @@ from core.models import (
     ResearchRequest,
 )
 from data.cse_loader import get_cse_stock, list_cse_stocks, get_cse_sectors
+from db.database import (
+    init_db,
+    save_report,
+    get_reports,
+    get_report_by_id,
+    get_db_stats,
+)
 from orchestrator import run_research_pipeline
 
 logging.basicConfig(
@@ -38,9 +46,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# In-memory report store (replaced by real DB in Phase 6)
-_report_store: list[dict] = []
-
 
 # ─── Lifespan ─────────────────────────────────────────────────────────────────
 @asynccontextmanager
@@ -49,6 +54,12 @@ async def lifespan(app: FastAPI):
     logger.info("   Groq model  : %s", settings.groq_model)
     logger.info("   CORS origins: %s", settings.cors_origins_list)
     logger.info("   GNews key   : %s", "configured" if settings.gnews_api_key else "NOT SET")
+    logger.info("   Database    : %s", "configured" if settings.database_url else "NOT SET (in-memory fallback)")
+
+    # Attempt DB init (creates tables if they don't exist — safe to call repeatedly)
+    if settings.database_url:
+        await init_db()
+
     yield
     logger.info("🛑 Shutting down")
 
@@ -76,7 +87,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # ─── Timing middleware ────────────────────────────────────────────────────────
 @app.middleware("http")
 async def add_timing_header(request: Request, call_next):
@@ -84,6 +94,29 @@ async def add_timing_header(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Process-Time"] = f"{time.perf_counter() - t0:.3f}s"
     return response
+
+# ─── In-memory fallback store (used when DATABASE_URL not set) ────────────────
+_memory_store: list[dict] = []
+
+
+# ─── Input validation helper ──────────────────────────────────────────────────
+_ALLOWED_TICKER_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.")
+
+
+def _validate_ticker(ticker: str) -> str:
+    """Normalise and validate a ticker string. Raises HTTPException on failure."""
+    clean = ticker.strip().upper()
+    if not clean or len(clean) > 20:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid ticker '{ticker}': must be 1-20 characters.",
+        )
+    if not all(c in _ALLOWED_TICKER_CHARS for c in clean):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid ticker '{ticker}': only letters, digits, and dots allowed.",
+        )
+    return clean
 
 
 # ─── System endpoints ─────────────────────────────────────────────────────────
@@ -97,10 +130,19 @@ async def root():
     }
 
 
-@app.get("/health", response_model=HealthResponse, tags=["System"])
+@app.get("/health", tags=["System"])
 async def health():
-    """Returns service health status."""
-    return HealthResponse(status="ok", version="1.0.0")
+    """
+    Returns service health status including database connectivity.
+    """
+    db_stats = await get_db_stats()
+    return {
+        "status": "ok",
+        "version": "1.0.0",
+        "database": db_stats,
+        "groq_configured": bool(settings.groq_api_key),
+        "gnews_configured": bool(settings.gnews_api_key),
+    }
 
 
 # ─── Research endpoint ────────────────────────────────────────────────────────
@@ -122,26 +164,14 @@ async def research(request: ResearchRequest):
     - **ticker**: Stock symbol (e.g. `AAPL`, `7203.T`, `JKH.N`)
     - **exchange**: Optional exchange hint (`AUTO` detects from ticker suffix)
 
-    Returns a complete research report within ~30-45 seconds.
+    The report is automatically saved to Supabase. Returns the full report
+    within ~30-45 seconds.
     """
-    ticker = request.ticker.strip().upper()
-
-    # Basic input validation
-    if not ticker or len(ticker) > 20:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid ticker: '{request.ticker}'. Must be 1-20 characters.",
-        )
-
-    # Block obviously invalid characters
-    allowed = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.")
-    if not all(c in allowed for c in ticker):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid ticker: '{ticker}'. Only letters, digits, and dots allowed.",
-        )
-
+    ticker = _validate_ticker(request.ticker)
     logger.info("POST /api/research | ticker=%s | exchange=%s", ticker, request.exchange)
+
+    # Normalise request ticker
+    request = ResearchRequest(ticker=ticker, exchange=request.exchange)
 
     try:
         report = await run_research_pipeline(request)
@@ -152,8 +182,14 @@ async def research(request: ResearchRequest):
             detail=f"Research pipeline failed: {exc}",
         )
 
-    # Store in memory (Phase 6 will replace with DB write)
-    _report_store.append(report.model_dump(mode="json"))
+    # ── Persist to DB (fire-and-forget style, never blocks the response) ──────
+    saved_id = await save_report(report)
+    if saved_id:
+        logger.info("Report persisted to DB: id=%s", saved_id)
+    else:
+        # DB save failed or DB not configured — fall back to in-memory store
+        _memory_store.append(report.model_dump(mode="json"))
+        logger.info("Report stored in-memory fallback (DB unavailable)")
 
     return report
 
@@ -173,13 +209,28 @@ async def history(
     """
     Returns paginated list of previously generated research reports.
 
-    Phase 6 will replace the in-memory store with Supabase PostgreSQL.
+    Results are served from Supabase when configured, or the in-memory
+    fallback store when DATABASE_URL is not set.
     """
-    reports = list(reversed(_report_store))  # newest first
+    # Try DB first
+    db_reports, total = await get_reports(
+        ticker=ticker,
+        page=page,
+        page_size=page_size,
+    )
 
+    if db_reports or total > 0:
+        return HistoryResponse(
+            reports=db_reports,
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+
+    # Fallback: in-memory store
+    reports = list(reversed(_memory_store))
     if ticker:
-        ticker_up = ticker.strip().upper()
-        reports = [r for r in reports if r.get("ticker") == ticker_up]
+        reports = [r for r in reports if r.get("ticker") == ticker.strip().upper()]
 
     total = len(reports)
     start = (page - 1) * page_size
@@ -193,6 +244,35 @@ async def history(
     )
 
 
+# ─── Single report by ID ──────────────────────────────────────────────────────
+@app.get(
+    "/api/report/{report_id}",
+    tags=["History"],
+    summary="Get a single report by ID",
+)
+async def get_report(report_id: str):
+    """
+    Retrieve a single research report by its UUID.
+    Returns 404 if not found.
+    """
+    # Validate UUID format
+    try:
+        import uuid as _uuid
+        _uuid.UUID(report_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid report ID format: {report_id}")
+
+    report = await get_report_by_id(report_id)
+    if not report:
+        # Check in-memory fallback
+        for r in _memory_store:
+            if r.get("id") == report_id:
+                return r
+        raise HTTPException(status_code=404, detail=f"Report '{report_id}' not found.")
+
+    return report
+
+
 # ─── CSE endpoints ────────────────────────────────────────────────────────────
 @app.get(
     "/api/cse",
@@ -203,8 +283,7 @@ async def cse_list(
     sector: Optional[str] = Query(None, description="Filter by sector"),
 ):
     """
-    Returns the full CSE stock dataset (50 stocks).
-    Optionally filtered by sector.
+    Returns the full CSE stock dataset (50 stocks), optionally filtered by sector.
     """
     stocks = list_cse_stocks(sector=sector)
     sectors = get_cse_sectors()
