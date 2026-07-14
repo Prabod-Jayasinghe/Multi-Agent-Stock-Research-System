@@ -21,7 +21,7 @@ An AI-powered financial intelligence platform that coordinates three specialized
 * **Live Deployment Link**: [Visit Live Application](https://multi-agent-stock-research-system.vercel.app/)
 
 ### 🎥 Working Demo Video
-<video src="./docs/demo_video.mp4" width="100%" controls></video>
+👉 **[Click here to watch the Demo Video](./docs/demo_video.mp4)**
 
 ### 📸 System Screenshots
 | | |
