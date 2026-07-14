@@ -18,11 +18,16 @@ An AI-powered financial intelligence platform that coordinates three specialized
 
 ## 🌐 Live Application & Demo
 
-* **Live Deployment Link**: [Visit Live Application (Insert Live Link Here)](#)
-* **System Screenshot**:
-  ![System Interface Screenshot](https://via.placeholder.com/1200x630/0f0f17/e2e8f0?text=Multi-Agent+Stock+Research+System+Interface)
-* **Working Demo Video**:
-  [![Working Video Demo](https://via.placeholder.com/1200x630/1a1a2e/e2e8f0?text=Click+to+Play+Demo+Video)](https://your-video-link-here.example.com)
+* **Live Deployment Link**: [Visit Live Application](https://multi-agent-stock-research-system.vercel.app/)
+
+### 🎥 Working Demo Video
+<video src="./docs/demo_video.mp4" width="100%" controls></video>
+
+### 📸 System Screenshots
+| | |
+|---|---|
+| **Research Dashboard** <br> ![Screenshot 1](./docs/Screenshot%201.png) | **Real-Time Agent Pipelines** <br> ![Screenshot 2](./docs/Screenshot%202.png) |
+| **Comprehensive Analysis Report** <br> ![Screenshot 3](./docs/Screenshot%203.png) | **Interactive Watchlist Manager** <br> ![Screenshot 4](./docs/Screenshot%204.png) |
 
 ---
 
