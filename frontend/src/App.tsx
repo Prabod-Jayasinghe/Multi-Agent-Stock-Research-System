@@ -36,7 +36,7 @@ export const App: React.FC = () => {
       {/* Modern Professional Footer */}
       <footer className="py-6 border-t border-[rgba(255,255,255,0.05)] text-center bg-[rgba(26,26,46,0.3)]">
         <p className="text-xs text-slate-500 font-medium">
-          © {new Date().getFullYear()} Antigravity Stock Research System • Built with multi-agent coordination engines.
+          © 2026  Stock Research System • Built with multi-agent coordination engines.
         </p>
       </footer>
     </div>
