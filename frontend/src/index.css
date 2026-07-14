@@ -94,3 +94,76 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-dark);
 }
+
+/* ─── Animations ─────────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.35s ease both;
+}
+
+/* ─── Print / PDF Export ─────────────────────────────────────────────────────── */
+@media print {
+  /* Hide chrome elements */
+  nav,
+  footer,
+  .no-print,
+  [data-no-print],
+  button {
+    display: none !important;
+  }
+
+  /* Force a white, readable background */
+  body,
+  #root,
+  main {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 12pt;
+  }
+
+  /* Make cards render on white with dark borders */
+  [class*="bg-[rgba"] {
+    background: #f9fafb !important;
+    border-color: #e5e7eb !important;
+  }
+
+  /* Verdict text colours override for legibility */
+  .text-emerald-400  { color: #065f46 !important; }
+  .text-amber-400    { color: #92400e !important; }
+  .text-rose-400     { color: #991b1b !important; }
+  .text-slate-300,
+  .text-slate-200,
+  .text-white        { color: #1f2937 !important; }
+  .text-slate-400,
+  .text-slate-500    { color: #6b7280 !important; }
+  .text-indigo-400   { color: #3730a3 !important; }
+
+  /* Expand full width on paper */
+  .max-w-5xl,
+  .max-w-4xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Prevent card breaking across page */
+  [class*="rounded-3xl"],
+  [class*="rounded-2xl"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Show the full headline list — no scroll clip */
+  .max-h-\[350px\] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1.5cm 1.5cm;
+  }
+}

@@ -103,6 +103,8 @@ export const Research: React.FC = () => {
                 <option value="Japan">Japan (TSE)</option>
                 <option value="UK">UK (LSE)</option>
                 <option value="Germany">Germany (XETRA)</option>
+                <option value="India">India — NSE (.NS)</option>
+                <option value="India">India — BSE (.BO)</option>
                 <option value="CSE">CSE (Colombo)</option>
               </select>
             </div>
@@ -129,7 +131,7 @@ export const Research: React.FC = () => {
       {/* Suffix Helper Card */}
       <div className="bg-[rgba(255,255,255,0.01)] border border-[rgba(255,255,255,0.03)] rounded-2xl p-6">
         <h4 className="text-sm font-bold text-slate-300 mb-4">💡 Global Exchange Suffix Guide</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
           <div className="space-y-1">
             <p className="text-slate-500 uppercase font-semibold">USA Exchange</p>
             <p className="text-white font-bold">No Suffix</p>
@@ -144,6 +146,16 @@ export const Research: React.FC = () => {
             <p className="text-slate-500 uppercase font-semibold">London Stock Exch</p>
             <p className="text-white font-bold">.L</p>
             <p className="text-slate-400">e.g. VOD.L (Vodafone)</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-slate-500 uppercase font-semibold">Germany (XETRA)</p>
+            <p className="text-white font-bold">.DE</p>
+            <p className="text-slate-400">e.g. SAP.DE</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-slate-500 uppercase font-semibold">India NSE</p>
+            <p className="text-white font-bold">.NS</p>
+            <p className="text-slate-400">e.g. RELIANCE.NS</p>
           </div>
           <div className="space-y-1">
             <p className="text-slate-500 uppercase font-semibold">Colombo Stock Exch</p>

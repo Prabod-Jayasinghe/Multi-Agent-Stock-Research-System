@@ -4,11 +4,13 @@ Auto-detects the stock exchange from the ticker symbol suffix and returns
 a normalised exchange name + the correct yfinance-compatible ticker string.
 
 Supported:
-  USA   (NYSE / NASDAQ) — no suffix  e.g. AAPL, TSLA
-  Japan (TSE)           — .T suffix  e.g. 7203.T
-  UK    (LSE)           — .L suffix  e.g. VOD.L
-  Germany (XETRA)       — .DE suffix e.g. SAP.DE
-  CSE   (Colombo SE)    — .N / .X / .CSE suffix  e.g. JKH.N
+  USA    (NYSE / NASDAQ)      — no suffix   e.g. AAPL, TSLA
+  Japan  (TSE)                — .T suffix   e.g. 7203.T
+  UK     (LSE)                — .L suffix   e.g. VOD.L
+  Germany (XETRA)             — .DE suffix  e.g. SAP.DE
+  India  (NSE)                — .NS suffix  e.g. RELIANCE.NS
+  India  (BSE)                — .BO suffix  e.g. TATASTEEL.BO
+  CSE    (Colombo SE)         — .N / .X / .CSE suffix  e.g. JKH.N
 """
 
 from dataclasses import dataclass
@@ -34,6 +36,9 @@ _SUFFIX_MAP: dict[str, dict] = {
     ".ax":  {"name": "Australian Securities Exchange", "country": "AU", "currency": "AUD"},
     ".to":  {"name": "Toronto Stock Exchange", "country": "CA", "currency": "CAD"},
     ".hk":  {"name": "Hong Kong Stock Exchange","country":"HK", "currency": "HKD"},
+    # India — National Stock Exchange (NSE) and Bombay Stock Exchange (BSE)
+    ".ns":  {"name": "National Stock Exchange (India)",  "country": "IN", "currency": "INR"},
+    ".bo":  {"name": "Bombay Stock Exchange (India)",     "country": "IN", "currency": "INR"},
     # CSE suffixes — these trigger CSV fallback
     ".n":   {"name": "Colombo Stock Exchange (N board)", "country": "LK", "currency": "LKR", "is_cse": True},
     ".x":   {"name": "Colombo Stock Exchange (X board)", "country": "LK", "currency": "LKR", "is_cse": True},

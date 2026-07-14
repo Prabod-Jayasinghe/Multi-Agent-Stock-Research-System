@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface NavbarProps {
-  activeTab: 'research' | 'history' | 'cse';
-  setActiveTab: (tab: 'research' | 'history' | 'cse') => void;
+  activeTab: 'research' | 'history' | 'cse' | 'watchlist';
+  setActiveTab: (tab: 'research' | 'history' | 'cse' | 'watchlist') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
@@ -13,16 +13,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           <span className="text-xl font-bold text-white">🔍</span>
         </div>
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-            ANTIGRAVITY
-          </h1>
-          <p className="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase">
+          <h1 className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400 uppercase">
             Multi-Agent Stock Analyst
-          </p>
+          </h1>
         </div>
       </div>
 
-      <nav className="flex items-center gap-2 bg-[rgba(15,15,23,0.6)] p-1.5 rounded-xl border border-[rgba(255,255,255,0.05)]">
+      <nav className="flex items-center gap-1 bg-[rgba(15,15,23,0.6)] p-1.5 rounded-xl border border-[rgba(255,255,255,0.05)]">
         <button
           onClick={() => setActiveTab('research')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
@@ -41,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
           }`}
         >
-          📜 Report History
+          📜 History
         </button>
         <button
           onClick={() => setActiveTab('cse')}
@@ -51,7 +48,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
           }`}
         >
-          🇱🇰 CSE Explorer
+          🇱🇰 CSE
+        </button>
+        <button
+          onClick={() => setActiveTab('watchlist')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+            activeTab === 'watchlist'
+              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/10'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+          }`}
+        >
+          ⭐ Watchlist
         </button>
       </nav>
     </header>

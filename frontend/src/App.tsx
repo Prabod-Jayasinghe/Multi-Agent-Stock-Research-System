@@ -3,9 +3,10 @@ import Navbar from './components/Navbar';
 import Research from './pages/Research';
 import History from './pages/History';
 import CseExplorer from './pages/CseExplorer';
+import Watchlist from './pages/Watchlist';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'research' | 'history' | 'cse'>('research');
+  const [activeTab, setActiveTab] = useState<'research' | 'history' | 'cse' | 'watchlist'>('research');
 
   const renderActivePage = () => {
     switch (activeTab) {
@@ -15,6 +16,8 @@ export const App: React.FC = () => {
         return <History />;
       case 'cse':
         return <CseExplorer />;
+      case 'watchlist':
+        return <Watchlist />;
       default:
         return <Research />;
     }

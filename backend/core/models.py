@@ -15,6 +15,7 @@ class Exchange(str, Enum):
     JAPAN = "Japan"
     UK = "UK"
     GERMANY = "Germany"
+    INDIA = "India"
     CSE = "CSE"
     AUTO = "AUTO"
 

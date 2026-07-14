@@ -87,6 +87,8 @@ The Financials Agent parses ticker suffixes to identify the correct stock exchan
 | **Japan** | `.T` | `7203.T` | Tokyo Stock Exchange (real-time via `yfinance`) |
 | **United Kingdom** | `.L` | `VOD.L` | London Stock Exchange (real-time via `yfinance`) |
 | **Germany** | `.DE` | `SAP.DE` | XETRA / Frankfurt Exchange (real-time via `yfinance`) |
+| **India (NSE)** | `.NS` | `RELIANCE.NS` | National Stock Exchange of India (real-time via `yfinance`) |
+| **India (BSE)** | `.BO` | `TATASTEEL.BO` | Bombay Stock Exchange (real-time via `yfinance`) |
 | **Sri Lanka** | `.N` | `JKH.N` | Colombo Stock Exchange (curated 50-stock static CSV) |
 
 ---

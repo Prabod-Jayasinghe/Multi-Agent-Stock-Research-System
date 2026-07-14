@@ -2,11 +2,12 @@
 
 An AI-powered financial research platform that uses **three specialized AI agents** working in coordination to deliver comprehensive stock analysis reports with a **BUY / HOLD / SELL** recommendation.
 
-![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Python](https://img.shields.io/badge/Python-3.11-green)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
+![Tests](https://img.shields.io/badge/Tests-127_Passed-brightgreen)
 
 ---
 
@@ -56,6 +57,8 @@ User Input (ticker)
 | Japan (TSE) | `.T` | `7203.T` |
 | UK (LSE) | `.L` | `VOD.L` |
 | Germany (XETRA) | `.DE` | `SAP.DE` |
+| India (NSE) | `.NS` | `RELIANCE.NS` |
+| India (BSE) | `.BO` | `TATASTEEL.BO` |
 | Colombo (CSE) | `.N` | `JKH.N` (static CSV) |
 
 ## 🛠️ Tech Stack
@@ -130,16 +133,18 @@ npm run dev
 | Phase | Branch | Status |
 |-------|--------|--------|
 | 1 — Project Setup | `phase/1-project-setup` | ✅ Complete |
-| 2 — Stock Data Pipeline | `phase/2-stock-data-pipeline` | 🔄 Next |
-| 3 — News Agent | `phase/3-news-agent` | ⏳ Pending |
-| 4 — Synthesis Agent | `phase/4-synthesis-agent` | ⏳ Pending |
-| 5 — Orchestrator + FastAPI | `phase/5-orchestrator-fastapi` | ⏳ Pending |
-| 6 — Database Integration | `phase/6-database-integration` | ⏳ Pending |
-| 7 — React Frontend | `phase/7-react-frontend` | ⏳ Pending |
-| 8 — CSE Dataset | `phase/8-cse-dataset` | ⏳ Pending |
-| 9 — Testing | `phase/9-testing` | ⏳ Pending |
-| 10 — Docker & Local Dev | `phase/10-docker-local-dev` | ⏳ Pending |
-| 11 — Deployment | `phase/11-deployment` | ⏳ Pending |
+| 2 — Stock Data Pipeline | `phase/2-stock-data-pipeline` | ✅ Complete |
+| 3 — News Agent | `phase/3-news-agent` | ✅ Complete |
+| 4 — Synthesis Agent | `phase/4-synthesis-agent` | ✅ Complete |
+| 5 — Orchestrator + FastAPI | `phase/5-orchestrator-fastapi` | ✅ Complete |
+| 6 — Database Integration | `phase/6-database-integration` | ✅ Complete |
+| 7 — React Frontend | `phase/7-react-frontend` | ✅ Complete |
+| 8 — CSE Dataset | `phase/8-cse-dataset` | ✅ Complete |
+| 9 — Testing | `phase/9-testing` | ✅ Complete (127/127 passed) |
+| 10 — Docker & Local Dev | `phase/10-docker-local-dev` | ✅ Complete |
+| 11 — Deployment | `phase/11-deployment` | ✅ Complete |
+| 12 — India Exchange Support | `phase/12-india-exchange` | ✅ Complete |
+| 13 — Watchlist & PDF Export | `phase/13-watchlist-pdf` | ✅ Complete |
 
 ---
 
