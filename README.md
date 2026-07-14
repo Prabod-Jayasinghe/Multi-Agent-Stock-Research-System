@@ -1,6 +1,6 @@
 # 🔍 Multi-Agent Stock Research System
 
-An AI-powered financial research platform that uses **three specialized AI agents** working in coordination to deliver comprehensive stock analysis reports with a **BUY / HOLD / SELL** recommendation.
+An AI-powered financial intelligence platform that coordinates three specialized AI agents (News, Financials, and Synthesis) to perform real-time equity research and deliver comprehensive reports with a clear **BUY / HOLD / SELL** recommendation.
 
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-blue)
@@ -8,143 +8,163 @@ An AI-powered financial research platform that uses **three specialized AI agent
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![Tests](https://img.shields.io/badge/Tests-127_Passed-brightgreen)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38B2AC)
+![LLM-Power](https://img.shields.io/badge/LLM-Groq--Llama--3.1-orange)
+![Database](https://img.shields.io/badge/Database-Supabase--PostgreSQL-3ECF8E)
+
+---
+
+## 🌐 Live Application & Demo
+
+* **Live Deployment Link**: [Visit Live Application (Insert Live Link Here)](#)
+* **System Screenshot**:
+  ![System Interface Screenshot](https://via.placeholder.com/1200x630/0f0f17/e2e8f0?text=Multi-Agent+Stock+Research+System+Interface)
+* **Working Demo Video**:
+  [![Working Video Demo](https://via.placeholder.com/1200x630/1a1a2e/e2e8f0?text=Click+to+Play+Demo+Video)](https://your-video-link-here.example.com)
 
 ---
 
 ## 🏗️ Architecture
 
+The orchestrator utilizes asynchronous concurrency with `asyncio.gather` to scrape financials and aggregate news in parallel, isolating individual agent failures and handing over unified datasets to the final LLM consensus synthesis engine.
+
 ```
-User Input (ticker)
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│              Orchestrator               │
-│   (asyncio.gather — runs in parallel)   │
-└────────────┬───────────────┬────────────┘
-             │               │
-     ┌───────▼──────┐ ┌──────▼────────┐
-     │  News Agent  │ │Financials Agent│
-     │  (GNews API) │ │  (yfinance)   │
-     │  Groq LLM   │ │  Groq LLM     │
-     └───────┬──────┘ └──────┬────────┘
-             │               │
-             └───────┬───────┘
-                     ▼
-            ┌────────────────┐
-            │Synthesis Agent │
-            │   Groq LLM    │
-            │ BUY/HOLD/SELL  │
-            └────────┬───────┘
-                     │
-                     ▼
-              Research Report
-              (saved to DB)
+                       [ User Input (Ticker) ]
+                                  │
+                                  ▼
+                      ┌───────────────────────┐
+                      │  FastAPI Orchestrator │
+                      └───────────┬───────────┘
+                                  │
+                  ┌───────────────┴───────────────┐
+                  ▼ (asyncio.gather Parallel)     ▼ (asyncio.gather Parallel)
+       ┌─────────────────────┐         ┌─────────────────────┐
+       │     News Agent      │         │   Financials Agent  │
+       │  (GNews API + Groq) │         │ (yfinance/CSV + Groq)│
+       └──────────┬──────────┘         └──────────┬──────────┘
+                  │                               │
+                  └───────────────┬───────────────┘
+                                  ▼ (Sequential)
+                      ┌───────────────────────┐
+                      │    Synthesis Agent    │
+                      │  (BUY/HOLD/SELL JSON) │
+                      └───────────┬───────────┘
+                                  ▼
+                     ┌─────────────────────────┐
+                     │ Supabase DB Persistence │
+                     └─────────────────────────┘
 ```
 
-## 🤖 Agents
+---
 
-| Agent | Responsibility | Data Source |
-|-------|---------------|-------------|
-| **News Agent** | Fetches top 5 headlines, sentiment analysis | GNews API + Groq |
-| **Financials Agent** | PE, EPS, Revenue, Market Cap, etc. | yfinance + Groq |
-| **Synthesis Agent** | BUY/HOLD/SELL verdict, confidence, risks | Groq (aggregator) |
+## 🤖 AI Specialist Agents
+
+| Agent | Core Responsibility | Logic & Flow Details | Data Source |
+|-------|---------------------|----------------------|-------------|
+| **News Agent** | Analyzes recent media sentiment | Fetches top 5 headlines, runs parallel sentiment classification per article via Groq, aggregates key catalyst events, and provides a majority-vote fallback if JSON parses fail. Implements an in-memory 1-hour `TTLCache` to protect GNews quotas. | GNews API + Groq LLM |
+| **Financials Agent** | Analyzes fundamental valuation metrics | Scrapes valuation and balance sheet metrics. Runs yfinance in a background thread pool to prevent blocking the async loop. For Sri Lankan equities, automatically routes queries to a static local CSV fallback registry. Generates a concise valuation commentary paragraph. | yfinance API / Curated CSV + Groq LLM |
+| **Synthesis Agent** | Resolves consensus recommendation | Synthesizes joint News & Financial outputs, runs a 3-tier self-correction retry loop to enforce valid JSON structures, appends risk caution metrics, and issues the final BUY/HOLD/SELL verdict. | Groq LLM |
+
+---
 
 ## 🌍 Supported Exchanges
 
-| Exchange | Suffix | Example |
-|----------|--------|---------|
-| USA (NYSE/NASDAQ) | *(none)* | `AAPL`, `TSLA` |
-| Japan (TSE) | `.T` | `7203.T` |
-| UK (LSE) | `.L` | `VOD.L` |
-| Germany (XETRA) | `.DE` | `SAP.DE` |
-| India (NSE) | `.NS` | `RELIANCE.NS` |
-| India (BSE) | `.BO` | `TATASTEEL.BO` |
-| Colombo (CSE) | `.N` | `JKH.N` (static CSV) |
+| Exchange | Suffix | Example Ticker | Description | Currency |
+|----------|--------|----------------|-------------|----------|
+| **USA** | *None* | `AAPL` / `TSLA` | NYSE & NASDAQ listings | USD ($) |
+| **Japan** | `.T` | `7203.T` | Tokyo Stock Exchange | JPY (¥) |
+| **United Kingdom** | `.L` | `VOD.L` | London Stock Exchange | GBP (£) |
+| **Germany** | `.DE` | `SAP.DE` | XETRA / Frankfurt Exchange | EUR (€) |
+| **India** | `.NS` | `RELIANCE.NS` | National Stock Exchange | INR (Rs.) |
+| **India** | `.BO` | `TATASTEEL.BO` | Bombay Stock Exchange | INR (Rs.) |
+| **Sri Lanka** | `.N` | `JKH.N` | Colombo Stock Exchange (Static fallbacks) | LKR (Rs.) |
+
+---
+
+## ✨ Features & Functionality
+
+* **⭐ Localized Watchlist**: Save and monitor custom stock tickets across browser reloads using a persistent `localStorage` bookmark board. Triggers fresh multi-agent scans directly from the watchlist cards.
+* **🖨️ Clean PDF Exporting**: Layout includes optimized print CSS that hides header/navbars and overrides colors to produce readable, high-contrast, paper-optimized reports via browser printing.
+* **⚡ 1-Hour News Cache**: Limits API rate-limiting issues on the GNews free tier by checking an in-memory TTL caching layer.
+* **🛡️ Chaos Isolation**: The orchestrator protects against agent crashes—if the News API rate limits or yfinance timeouts occur, the synthesis engine safely evaluates the report using partial metrics.
+
+---
 
 ## 🛠️ Tech Stack
 
-**Backend**
-- [FastAPI](https://fastapi.tiangolo.com/) — REST API
-- [Groq](https://console.groq.com/) — Free LLM (llama3-8b-8192)
-- [yfinance](https://github.com/ranaroussi/yfinance) — Stock data (free)
-- [GNews](https://gnews.io/) — News headlines (free, 100 req/day)
-- [Supabase](https://supabase.com/) — PostgreSQL database (free tier)
+### Backend
+* **FastAPI** — High-performance ASGI REST framework.
+* **Groq SDK** — Powered by `llama-3.1-8b-instant` for sub-second, highly structured JSON-mode output generation.
+* **yfinance** — Extends scraping rules for real-time tickers.
+* **GNews API** — Targeted search and query parsing.
+* **Supabase / SQL Alchemy** — PostgreSQL persistence with asyncpg drivers and automatic connection pools.
 
-**Frontend**
-- [React 18](https://react.dev/) + [Vite](https://vitejs.dev/) + TypeScript
-- [TailwindCSS](https://tailwindcss.com/) — Styling
-
-**Infrastructure**
-- [Render.com](https://render.com/) — Backend hosting (free tier)
-- [Vercel](https://vercel.com/) — Frontend hosting (free tier)
-- [Docker Compose](https://docs.docker.com/compose/) — Local dev environment
+### Frontend
+* **React 18 & TypeScript** — Type-safe, modular visual layouts.
+* **Vite** — Optimized production bundler and dev server.
+* **TailwindCSS v4** — High-performance grid styling and dark-mode gradients.
+* **Axios** — Client requests with local dev proxy setups.
 
 ---
 
 ## 🚀 Quick Start (Local)
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- Docker & Docker Compose (optional)
+* Python 3.11+
+* Node.js 18+
+* Docker & Docker Compose (optional)
 
-### 1. Clone and configure
+### 1. Clone and Configure
 ```bash
 git clone https://github.com/j-coder-shan/Multi-Agent-Stock-Research-System.git
 cd Multi-Agent-Stock-Research-System
 cp .env.example .env
-# Edit .env with your API keys
+# Open .env and insert your GROQ_API_KEY and GNEWS_API_KEY
 ```
 
-### 2. Get free API keys
-| Service | URL | Free Tier |
-|---------|-----|-----------|
-| Groq | https://console.groq.com/ | 14,400 req/day |
-| GNews | https://gnews.io/ | 100 req/day |
-| Supabase | https://supabase.com/ | 500MB DB |
-
-### 3. Run with Docker
+### 2. Run with Docker
 ```bash
 docker compose up --build
 ```
 
-### 4. Or run manually
+### 3. Or Run Manually
+#### Start the Backend API
 ```bash
-# Backend
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload
+python main.py
+```
+*Backend documentation is available at [http://localhost:8000/docs](http://localhost:8000/docs).*
 
-# Frontend (separate terminal)
+#### Start the Frontend UI (separate terminal)
+```bash
 cd frontend
 npm install
 npm run dev
 ```
-
-### 5. Open the app
-- **Frontend**: http://localhost:3000
-- **API Docs**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
+*Vite web server is available at [http://localhost:5173/](http://localhost:5173/).*
 
 ---
 
-## 📋 Development Phases
+## 📋 Project Milestones & Roadmap
 
-| Phase | Branch | Status |
+| Milestone | Scope | Status |
 |-------|--------|--------|
-| 1 — Project Setup | `phase/1-project-setup` | ✅ Complete |
-| 2 — Stock Data Pipeline | `phase/2-stock-data-pipeline` | ✅ Complete |
-| 3 — News Agent | `phase/3-news-agent` | ✅ Complete |
-| 4 — Synthesis Agent | `phase/4-synthesis-agent` | ✅ Complete |
-| 5 — Orchestrator + FastAPI | `phase/5-orchestrator-fastapi` | ✅ Complete |
-| 6 — Database Integration | `phase/6-database-integration` | ✅ Complete |
-| 7 — React Frontend | `phase/7-react-frontend` | ✅ Complete |
-| 8 — CSE Dataset | `phase/8-cse-dataset` | ✅ Complete |
-| 9 — Testing | `phase/9-testing` | ✅ Complete (127/127 passed) |
-| 10 — Docker & Local Dev | `phase/10-docker-local-dev` | ✅ Complete |
-| 11 — Deployment | `phase/11-deployment` | ✅ Complete |
-| 12 — India Exchange Support | `phase/12-india-exchange` | ✅ Complete |
-| 13 — Watchlist & PDF Export | `phase/13-watchlist-pdf` | ✅ Complete |
+| **1 — Project Setup** | Scaffold backend & frontend layouts. | ✅ Complete |
+| **2 — Stock Data Pipeline** | yfinance & local CSE dataset bindings. | ✅ Complete |
+| **3 — News Agent** | GNews, sentiment scoring, TTLCache. | ✅ Complete |
+| **4 — Synthesis Agent** | Consensus valuation rules, 3-tier correction loops. | ✅ Complete |
+| **5 — Orchestration Layer** | Parallel execution models via asyncio. | ✅ Complete |
+| **6 — Database Integration** | PostgreSQL schemas & async migrations. | ✅ Complete |
+| **7 — User Interface** | Search boards, dials, news feeds, and skeleton loaders. | ✅ Complete |
+| **8 — Curated Directory** | Colombo Stock Exchange explorer catalogs. | ✅ Complete |
+| **9 — Automated Tests** | Pytest & Vitest configuration suite (127/127 tests). | ✅ Complete |
+| **10 — Local Development** | Multi-container Docker configs & health validations. | ✅ Complete |
+| **11 — India Market Suffixes** | Indian National & Bombay Stock Exchange support. | ✅ Complete |
+| **12 — Features Integration** | Local Storage Watchlist and PDF print layouts. | ✅ Complete |
+| **13 — Production Deployment** | Render backend + Vercel static frontends. | ✅ Complete |
 
 ---
 
@@ -157,3 +177,4 @@ Reports generated by this system are for **informational purposes only** and do 
 ## 📄 License
 
 MIT © 2026
+
